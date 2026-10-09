@@ -1,0 +1,30 @@
+clc; clear; close all;
+
+N = 1000000;                    % bits per SNR point
+EbN0_dB = 0:1:9;                % SNR values to test, in dB
+
+bits = randi([0 1], 1, N);
+tx = 2*bits - 1;                % BPSK mapping
+
+ber = zeros(size(EbN0_dB));     % place to store results
+
+for k = 1:length(EbN0_dB)
+    EbN0 = 10^(EbN0_dB(k)/10);
+    sigma = sqrt(1/(2*EbN0));
+
+    rx = tx + sigma*randn(1, N);
+    rx_bits = rx > 0;
+
+    ber(k) = sum(rx_bits ~= bits) / N;
+end
+
+theory = 0.5*erfc(sqrt(10.^(EbN0_dB/10)));
+
+disp([EbN0_dB' ber' theory'])   % table: SNR, simulated, theory
+
+semilogy(EbN0_dB, ber, 'o-', EbN0_dB, theory, '--');
+xlabel('Eb/N0 (dB)');
+ylabel('Bit Error Rate');
+legend('Simulated', 'Theory');
+title('BPSK over AWGN');
+grid on;
